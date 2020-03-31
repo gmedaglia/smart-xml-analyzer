@@ -4,7 +4,7 @@ php analyzer.php <originalUrl> <diffUrl> [elementId]
 ```
 Optional argument `elementId` assumes default value `make-everything-ok-button` when not passed.
 
-***Examples:
+######Examples:
 
 Without `elementId`:
 ```
