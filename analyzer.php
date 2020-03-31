@@ -61,14 +61,14 @@ class SameElementFinder {
         return str_replace('/', ' < ', substr($path, 1));
     }
 
-    public function find($urlOriginal, $urlDiff, $originalElementId) {
+    public function find($originalFile, $diffFile, $originalElementId) {
         $dom = new DOMDocument('1.0');
 
-        @$dom->loadHTMLFile($urlOriginal);
+        @$dom->loadHTMLFile($originalFile);
 
         $originalElement = new Element($dom->getElementById($originalElementId));
 
-        @$dom->loadHTMLFile($urlDiff);
+        @$dom->loadHTMLFile($diffFile);
 
         $domElementWithSameIdAsOriginal = $dom->getElementById($originalElementId);
 
