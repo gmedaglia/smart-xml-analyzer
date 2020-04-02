@@ -50,13 +50,6 @@ class SameElementFinder {
     const SCORE_CLASS = 10;
     const SCORE_REL = 5;
 
-    private $originalButton;
-    private $dom;
-
-    public function __construct() {
-
-    }
-
     private function formatPath($path) {
         return str_replace('/', ' < ', substr($path, 1));
     }
@@ -64,12 +57,7 @@ class SameElementFinder {
     public function find($originalFile, $diffFile, $originalElementId) {
         $dom = new DOMDocument('1.0');
 
-        try {
-            $dom->loadHTMLFile($originalFile);
-        } catch (Exception $e) {
-            echo $e->getMessage(); PHP_EOL;
-            die();
-        }
+        @$dom->loadHTMLFile($originalFile);
 
         $originalElement = new Element($dom->getElementById($originalElementId));
 
