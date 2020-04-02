@@ -1,6 +1,6 @@
 Run using:
 ```
-php analyzer.php <originalUrl> <diffUrl> [elementId]
+php analyzer.php <originalFile> <diffFile> [elementId]
 ```
 Optional argument `elementId` assumes default value `make-everything-ok-button` when not passed.
 

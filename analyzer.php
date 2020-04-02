@@ -64,7 +64,12 @@ class SameElementFinder {
     public function find($originalFile, $diffFile, $originalElementId) {
         $dom = new DOMDocument('1.0');
 
-        @$dom->loadHTMLFile($originalFile);
+        try {
+            $dom->loadHTMLFile($originalFile);
+        } catch (Exception $e) {
+            echo $e->getMessage(); PHP_EOL;
+            die();
+        }
 
         $originalElement = new Element($dom->getElementById($originalElementId));
 
@@ -89,7 +94,7 @@ class SameElementFinder {
         foreach ($domElementsByTag as $i => $domElement) {
             $element = new Element($domElement);
 
-            echo 'Element ' . $i . PHP_EOL;
+            echo 'Element ' . ($i + 1) . PHP_EOL;
 
             $score = 0;
 
