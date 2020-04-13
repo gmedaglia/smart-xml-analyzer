@@ -1,3 +1,5 @@
+Check the [Wiki Page](https://github.com/gmedaglia/smart-xml-analyzer/wiki) for requirements.
+
 Run using:
 ```
 php analyzer.php <originalFile> <diffFile> [elementId]
