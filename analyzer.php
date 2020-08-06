@@ -1,6 +1,7 @@
 <?php
 
-class Element {
+class Element 
+{
     private $id;
     private $class;
     private $title;
@@ -8,7 +9,8 @@ class Element {
     private $rel;
     private $tag;
 
-    public function __construct(DOMElement $domElement) {
+    public function __construct(DOMElement $domElement) 
+    {
         $this->tag = $domElement->tagName;
         $this->id = $domElement->getAttribute('id');
         $this->class = $domElement->getAttribute('class');
@@ -17,44 +19,128 @@ class Element {
         $this->text = trim($domElement->nodeValue);
     }
 
-    public function getTag() {
+    public function getTag() 
+    {
         return $this->tag;
     }
 
-    public function getId() {
+    public function getId()
+    {
         return $this->id;
     }
 
-    public function getClass() {
+    public function getClass()
+    {
         return $this->class;
     }
 
-    public function getTitle() {
+    public function getTitle()
+    {
         return $this->title;
     }
 
-    public function getRel() {
+    public function getRel()
+    {
         return $this->rel;
     }
 
-    public function getText() {
+    public function getText()
+    {
         return $this->text;
     }
 }
 
-class SameElementFinder {
+interface HtmlComparator
+{
+    public function applies(Element $original, Element $new) : bool;
+    public function getScore() : int;
+    public function getApplicableOutput() : string;
+}
 
-    const MIN_SCORE = 20;
-    const SCORE_TEXT = 30;
-    const SCORE_TITLE = 20;
-    const SCORE_CLASS = 10;
-    const SCORE_REL = 5;
-
-    private function formatPath($path) {
-        return str_replace('/', ' < ', substr($path, 1));
+class TextComparator implements HtmlComparator
+{
+    public function applies(Element $original, Element $new) : bool
+    {
+        return $original->getText() == $new->getText();
     }
 
-    public function find($originalFile, $diffFile, $originalElementId) {
+    public function getScore() : int
+    {
+        return 30;
+    }
+
+    public function getApplicableOutput() : string
+    {
+        return 'Element has same content as original -> ' . $this->getScore() . ' points.';
+    }
+}
+
+class TitleComparator implements HtmlComparator
+{
+    public function applies(Element $original, Element $new) : bool
+    {
+        return $original->getTitle() == $new->getTitle();
+    }
+
+    public function getScore() : int
+    {
+        return 20;
+    }
+
+    public function getApplicableOutput() : string
+    {
+        return 'Element has same title attribute as original -> ' . $this->getScore() . ' points.';
+    }    
+}
+
+class CssClassComparator implements HtmlComparator
+{
+    public function applies(Element $original, Element $new) : bool
+    {
+        return $original->getClass() == $new->getClass();
+    }
+
+    public function getScore() : int
+    {
+        return 10;
+    }
+
+    public function getApplicableOutput() : string
+    {
+        return 'Element has same class attribute as original -> ' . $this->getScore() . ' points.';
+    }    
+}
+
+class RelComparator implements HtmlComparator
+{
+    public function applies(Element $original, Element $new) : bool
+    {
+        return $original->getRel() == $new->getRel();
+    }
+
+    public function getScore() : int
+    {
+        return 5;
+    }
+
+    public function getApplicableOutput() : string
+    {
+        return 'Element has same rel attribute as original -> ' . $this->getScore() . ' points.';
+    }    
+}
+
+class SameElementFinder
+{
+
+    const MIN_SCORE = 20;
+
+    private function formatPath($path)
+    {
+        return str_replace('/', ' < ', substr($path, 1));
+    }   
+
+    public function find($originalFile, $diffFile, $originalElementId)
+    {
         $dom = new DOMDocument('1.0');
 
         @$dom->loadHTMLFile($originalFile);
@@ -79,6 +165,13 @@ class SameElementFinder {
         $maxScore = 0;
         $bestMatch = null;
 
+        $comparatorImplementations = array_filter(
+            get_declared_classes(), 
+            function ($className) {
+                return in_array('HtmlComparator', class_implements($className));
+            }
+        );
+
         foreach ($domElementsByTag as $i => $domElement) {
             $element = new Element($domElement);
 
@@ -86,22 +179,13 @@ class SameElementFinder {
 
             $score = 0;
 
-            if ($element->getText() == $originalElement->getText()) {
-                $score += self::SCORE_TEXT;
-                echo 'Element has same content as original -> ' . self::SCORE_TEXT . ' points' . PHP_EOL;
-            }
-            if ($element->getTitle() == $originalElement->getTitle()) {
-                echo 'Element has same title attribute as original -> ' . self::SCORE_TITLE . ' points' . PHP_EOL;
-                $score += self::SCORE_TITLE;
+            foreach ($comparatorImplementations as $comparatorImplementation) {
+                $comparator = new $comparatorImplementation;
+                if ($comparator->applies($originalElement, $element)) {
+                    $score += $comparator->getScore();
+                    echo $comparator->getApplicableOutput() . PHP_EOL;
+                }
             } 
-            if ($element->getClass() == $originalElement->getClass()) {
-                echo 'Element has same class attribute as original -> ' . self::SCORE_CLASS . ' points' . PHP_EOL;
-                $score += self::SCORE_CLASS;
-            }
-            if ($element->getRel() == $originalElement->getRel()) {
-                echo 'Element has same rel attribute as original -> ' . self::SCORE_REL . ' points' . PHP_EOL;
-                $score += self::SCORE_CLASS;
-            }   
 
             echo 'Total score: ' . $score . PHP_EOL;
 
